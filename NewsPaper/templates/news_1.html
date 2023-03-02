@@ -1,0 +1,82 @@
+
+{% extends 'flatpages/default.html' %}
+{% load custom_filters %}
+{% load custom_tags %}
+{% block title %}
+News
+{% endblock title %}
+{% block content %}
+   <h1 class="text-center"><span class="text-muted fs-6 fw-normal">Все новости</span></h1>
+
+      {% if is_not_subscribers %}
+          <p class="text-center"><a href="{}" class="btn btn-secondary btn-sm ">Подписаться</a> </p>
+       {% endif %}
+
+
+   <form action="" method="get">
+
+       {{ filterset.form.as_p }}
+
+       <input type="submit" value="Найти" />
+   </form>
+
+<h3 class="text-center"><span class="text-muted fs-6 fw-normal">Сегодня {{ time_now|date:'d M Y' }} -- Количество доступных статей и новостей: {{ news|length }}</span></h3>
+
+<h3 class="text-center"><span class="text-muted fs-6 fw-normal"> {{ next_post|default_if_none:"Чуть позже сообщим о свежих новостях!" }} </span></h3>
+
+   <hr>
+
+    {% if perms.news.add_post %}
+    <a href="{% url 'post_create' %}">Добавить новость или статью</a>
+    {% endif %}
+
+   <hr>
+
+<ul class="list-group list-group-flush">
+    {% for post in news %}
+       <li class="list-group-item">
+           <small class="fw-bold">{{ post.dateCreation|date:'d M Y ' }}</small>
+           <a href="{% url 'post_detail' post.id %}">{{ post.title }}</a>
+           <small class="text-muted">(автор: {{ post.author }})</small><br>
+           <small class="fw-bold">Тема:
+               {% for category in post.postCategory.all %}
+                           <a href="{% url 'category_list' category.id %}"> {{ category }} </a>
+               {% endfor %}
+           </small>
+           <td>
+           <small class="fw-bold">Действия:
+               {% if perms.news.change_post %}
+                    <a href="{% url 'post_edit' pk=post.id %}">Изменить</a>
+                    {% endif %}
+                    {% if perms.news.delete_post %}
+                    <a href="{% url 'post_delete' post.id %}">Удалить</a>
+                    {% endif %}
+           </small>
+           </td>
+           <p>{{ post.text |truncatechars:210}}</p>
+       </li>
+    {% endfor %}
+
+</ul>
+
+
+{% if page_obj.has_previous %}
+       <a href="?{% url_replace page=1 %}">1</a>
+       {% if page_obj.previous_page_number != 1 %}
+           ...
+           <a href="?{% url_replace page=page_obj.previous_page_number %}">{{ page_obj.previous_page_number }}</a>
+       {% endif %}
+   {% endif %}
+
+   {{ page_obj.number }}
+
+   {% if page_obj.has_next %}
+       <a href="?{% url_replace page=page_obj.next_page_number %}">{{ page_obj.next_page_number }}</a>
+       {% if paginator.num_pages != page_obj.next_page_number %}
+           ...
+           <a href="?{% url_replace page=page_obj.paginator.num_pages %}">{{ page_obj.paginator.num_pages }}</a>
+       {% endif %}
+   {% endif %}
+
+{% endblock content %}
+
